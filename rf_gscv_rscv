@@ -1,0 +1,50 @@
+#importing libraries
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV, cross_val_score, cross_validate
+from sklearn.metrics import mean_squared_error, r2_score, accuracy_score
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
+
+#importing data
+training_data = pd.read_excel(r"E:/work/LANDSLIDE SUSCEPTIBILITY/LS_detection/2013-2023/RF_classification/LS_nonLS_trn_seg_CDcom.xlsx",sheet_name=0)
+training_data_bands = training_data[['cva_mean','imgratio_m','dndvi_mean','dsavi_mean','spangle_me','pca4_mean']]
+classes = training_data['label']
+
+#RandomizedSearchCV
+params = {'n_estimators':list(range(1,100))}
+rf = RandomForestClassifier() 
+rscv = RandomizedSearchCV(estimator=rf, param_distributions=params, cv=5, return_train_score=True, random_state=1).fit(training_data_bands, classes)
+best_est_rscv=rscv.best_estimator_
+df_rscv = pd.DataFrame(rscv.cv_results_)
+df_rscv = df_rscv.sort_values('param_n_estimators')
+
+#plotting
+plt.rcParams['figure.dpi']=500
+plt.plot(df_rscv['param_n_estimators'], df_rscv['mean_train_score'], c='black')
+plt.plot(df_rscv['param_n_estimators'], df_rscv['mean_test_score'], c='grey')
+plt.legend(['Train Score', 'Test Score'])
+plt.ylim(0.85,1.1)
+plt.xlabel('N_estimators')
+plt.ylabel('Mean train and test score')
+
+#GridSearchCV
+params = {'n_estimators':list(range(71,91))}
+rf1 = RandomForestClassifier() 
+gscv = GridSearchCV(estimator=rf1, param_grid=params, cv=5, return_train_score=True).fit(training_data_bands, classes)
+best_est_gscv=gscv.best_params_
+df_gscv = pd.DataFrame(gscv.cv_results_)
+df_gscv = df_gscv.sort_values('param_n_estimators')
+
+#plotting
+plt.rcParams['figure.dpi']=500
+plt.plot(df_gscv['param_n_estimators'], df_gscv['mean_train_score'], c='black')
+plt.plot(df_gscv['param_n_estimators'], df_gscv['mean_test_score'], c='grey')
+plt.legend(['Train Score', 'Test Score'])
+plt.ylim(0.85,1.1)
+plt.xlabel('N_estimators')
+plt.ylabel('Mean train and test score')
