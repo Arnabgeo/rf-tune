@@ -11,9 +11,9 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestClassifier
 
 #importing data
-training_data = pd.read_excel(r"E:/work/LANDSLIDE SUSCEPTIBILITY/LS_detection/2013-2023/RF_classification/LS_nonLS_trn_seg_CDcom.xlsx",sheet_name=0)
-training_data_bands = training_data[['cva_mean','imgratio_m','dndvi_mean','dsavi_mean','spangle_me','pca4_mean']]
-classes = training_data['label']
+training_data = pd.read_excel(r"H:/ob1_mod/train_test_data/objects_fin/fin_obj_train.xlsx",sheet_name=0)
+training_data_bands = training_data[['cva_mean','dndvi_mean','dsavi_mean','imgrat_mea','spangle_me','pca4_mean']]
+classes = training_data['LS_label']
 
 #RandomizedSearchCV
 params = {'n_estimators':list(range(1,100))}
@@ -24,16 +24,20 @@ df_rscv = pd.DataFrame(rscv.cv_results_)
 df_rscv = df_rscv.sort_values('param_n_estimators')
 
 #plotting
-plt.rcParams['figure.dpi']=500
+plt.rcParams['figure.dpi']=1300
 plt.plot(df_rscv['param_n_estimators'], df_rscv['mean_train_score'], c='black')
 plt.plot(df_rscv['param_n_estimators'], df_rscv['mean_test_score'], c='grey')
 plt.legend(['Train Score', 'Test Score'])
-plt.ylim(0.85,1.1)
-plt.xlabel('N_estimators')
-plt.ylabel('Mean train and test score')
+#highlighting the highest N_estimator
+highlight_x = 33
+highlight_y = df_rscv[df_rscv['param_n_estimators'] == highlight_x]['mean_test_score'].values[0]
+plt.scatter(highlight_x, highlight_y, edgecolor='red', facecolor='none', s=100, linewidth=1.5, label=f'Point at X={highlight_x}')
+plt.ylim(0.70,1.1)
+plt.xlabel('N_estimators',fontsize=12)
+plt.ylabel('Mean train and test score',fontsize=12)
 
 #GridSearchCV
-params = {'n_estimators':list(range(71,91))}
+params = {'n_estimators':list(range(23,43))}
 rf1 = RandomForestClassifier() 
 gscv = GridSearchCV(estimator=rf1, param_grid=params, cv=5, return_train_score=True).fit(training_data_bands, classes)
 best_est_gscv=gscv.best_params_
@@ -41,10 +45,16 @@ df_gscv = pd.DataFrame(gscv.cv_results_)
 df_gscv = df_gscv.sort_values('param_n_estimators')
 
 #plotting
-plt.rcParams['figure.dpi']=500
+plt.rcParams['figure.dpi']=1300
 plt.plot(df_gscv['param_n_estimators'], df_gscv['mean_train_score'], c='black')
 plt.plot(df_gscv['param_n_estimators'], df_gscv['mean_test_score'], c='grey')
 plt.legend(['Train Score', 'Test Score'])
-plt.ylim(0.85,1.1)
-plt.xlabel('N_estimators')
-plt.ylabel('Mean train and test score')
+#highlighting the highest N_estimator
+highlight_x = 23
+highlight_y = df_gscv[df_gscv['param_n_estimators'] == highlight_x]['mean_test_score'].values[0]
+plt.scatter(highlight_x, highlight_y, edgecolor='red', facecolor='none', s=100, linewidth=1.5, label=f'Point at X={highlight_x}')
+x_ticks = range(22, 44, 3)
+plt.xticks(x_ticks)
+plt.ylim(0.70,1.1)
+plt.xlabel('N_estimators',fontsize=12)
+plt.ylabel('Mean train and test score',fontsize=12)
